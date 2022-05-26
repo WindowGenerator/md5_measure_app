@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "celery_worker"
+version = "0.0.1"
+description = "Celery worker who calculates hashes"
+authors = ["Sergey Chudov <chudov42@gmail.com>"]
+license = "MIT"
+
+readme = "README.md"
+homepage = "https://github.com/WindowGenerator/md5_measure_app"
+repository = "https://github.com/WindowGenerator/md5_measure_app"
+documentation = "https://github.com/WindowGenerator/md5_measure_app"
+
+[tool.poetry.dependencies]
+python = "^3.8"
+celery = "^5.2.6"
+redis = "^4.3.1"
+pydantic = "^1.9.1"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
