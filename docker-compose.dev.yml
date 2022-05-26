@@ -1,0 +1,99 @@
+version: "3.7"
+
+x-rabbitmq-variables: &rabbitmq-variables
+  RABBITMQ_HOST: ${RABBITMQ_HOST:-rabbitmq}
+  RABBITMQ_USERNAME: ${RABBITMQ_USERNAME:-user}
+  RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:-bitnami}
+  RABBITMQ_PORT: ${RABBITMQ_PORT:-5672}
+
+x-redis-variables: &redis-variables
+  REDIS_HOST: ${REDIS_HOST:-redis}
+  REDIS_USERNAME: ${REDIS_USERNAME:-}
+  REDIS_PASSWORD: ${REDIS_PASSWORD:-password123}
+  REDIS_PORT: ${REDIS_PORT:-6379}
+
+  REDIS_CELERY_DB_INDEX: ${REDIS_CELERY_DB_INDEX:-0}
+  REDIS_STORE_DB_INDEX: ${REDIS_STORE_DB_INDEX:-1}
+
+x-postgres-variables: &postgres-variables
+  POSTGRES_USER: ${POSTGRES_USER:-postgres}
+  POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-secret}
+  POSTGRES_HOST: ${POSTGRES_HOST:-postgres}
+  POSTGRES_DB: ${POSTGRES_DB:-hash_record_db}
+
+
+services:
+  backend:
+    container_name: backend
+    build:
+      context: ./backend
+      dockerfile: ./Dockerfile
+    environment:
+      <<: *rabbitmq-variables
+      <<: *redis-variables
+      <<: *postgres-variables
+    ports:
+      - "8000:8000"
+    depends_on:
+      - rabbitmq
+      - redis
+    volumes:
+      - "./backend/src:/opt/app/src"
+    command: "uvicorn --factory src.main:create_app --host 0.0.0.0 --port 8000 --reload"
+
+  rabbitmq:
+    container_name: rabbitmq
+    image: "bitnami/rabbitmq:3.7"
+    ports:
+      - "4369:4369"
+      - "5672:5672"
+      - "25672:25672"
+      - "15672:15672"
+    volumes:
+      - "rabbitmq_data:/bitnami"
+
+  redis:
+    container_name: redis
+    image: "bitnami/redis:5.0.4"
+    environment:
+      - REDIS_PASSWORD=password123
+    ports:
+      - "6379:6379"
+    volumes:
+      - "redis_data:/bitnami/redis/data"
+
+  postgres:
+    container_name: postgres
+    build:
+      context: ./postgres
+      dockerfile: ./Dockerfile
+    environment:
+      <<: *postgres-variables
+    ports:
+    - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  worker:
+    container_name: worker
+    build:
+      context: ./worker
+      dockerfile: ./Dockerfile
+    environment:
+      <<: *rabbitmq-variables
+      <<: *redis-variables
+    depends_on:
+      - rabbitmq
+      - redis
+    volumes:
+      - "./logs:/opt/app/logs"
+      - "./worker/src:/opt/app/src"
+    command: "celery -A src.worker worker -l info -Q test-queue --concurrency=1"
+
+volumes:
+  rabbitmq_data:
+    driver: local
+  redis_data:
+    driver: local
+  postgres_data:
+    driver: local
