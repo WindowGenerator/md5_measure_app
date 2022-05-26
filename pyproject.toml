@@ -1,0 +1,44 @@
+[tool.poetry]
+name = "md5_measure_service"
+version = "0.0.1"
+description = "Hash calculation service for files"
+authors = ["Sergey Chudov <chudov42@gmail.com>"]
+license = "MIT"
+
+packages = [
+    {include = "backend"},
+    {include = "worker"}
+]
+
+readme = "README.md"
+homepage = "https://github.com/WindowGenerator/md5_measure_app"
+repository = "https://github.com/WindowGenerator/md5_measure_app"
+documentation = "https://github.com/WindowGenerator/md5_measure_app"
+
+[tool.poetry.dependencies]
+python = "^3.8"
+
+[tool.poetry.dev-dependencies]
+pytest = "^7.1.2"
+pre-commit = "^2.19.0"
+isort = "^5.10.1"
+
+[tool.isort]
+line_length = 88
+atomic = true
+include_trailing_comma = true
+lines_after_imports = 2
+lines_between_types = 1
+multi_line_output = 3
+use_parentheses = true
+not_skip = "__init__.py"
+filter_files = true
+
+known_first_party = "src"
+known_third_party = [
+    "pytest",
+]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
