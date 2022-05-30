@@ -1,6 +1,7 @@
 import logging
 
 import redis
+
 from celery.signals import after_setup_logger
 from src.settings import get_celery_settings
 
@@ -15,7 +16,7 @@ class FileHandlerWithLocks(logging.FileHandler):
         super().__init__(filename=filename, mode=mode, encoding=encoding, delay=delay)
 
         settings = get_celery_settings()
-        self.__redis_client = redis.Redis.from_url(settings.redis_store_uri)
+        self._redis_client = redis.Redis.from_url(settings.redis_store_uri)
 
     def emit(self, record):
         """
@@ -24,7 +25,7 @@ class FileHandlerWithLocks(logging.FileHandler):
         If the stream was not opened because 'delay' was specified in the
         constructor, open it before calling the superclass's emit.
         """
-        with self.__redis_client.lock("logging_lock"):
+        with self._redis_client.lock("logging_lock"):
             super().emit(record)
 
 

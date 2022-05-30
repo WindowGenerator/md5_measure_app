@@ -21,10 +21,10 @@ const FileUpload = () => {
   const onSubmitComputeHash = async e => {
     e.preventDefault();
     const formData = new FormData();
-    formData.append('file', file);
+    formData.append('upload_file', file);
 
     try {
-      const res = await axios.post("/files/compute/hash", formData, {
+      const res = await axios.post("http://localhost:8000/api/v1/files/compute/hash", formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }
@@ -45,7 +45,7 @@ const FileUpload = () => {
   const onSubmitGetComputedHash = async e => {
     e.preventDefault();
     try {
-      const res = await axios.get(`/files/compute/hash?task_id=${taskId}`);
+      const res = await axios.get(`http://localhost:8000/api/v1/files/compute/hash?task_id=${taskId}`);
 
       setHashedFileText(textFromHashedFile(res.data));
     } catch(err) {
