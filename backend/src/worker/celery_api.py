@@ -1,6 +1,7 @@
 import logging
 
 from celery import Celery, Task
+from celery.result import AsyncResult
 from src.settings import CelerySettings, get_celery_settings
 
 
@@ -22,3 +23,6 @@ class CeleryApi:
         return self._app.send_task(
             "compute_hash_by_file", kwargs={"file": file, "hash_type": hash_type}
         )
+
+    def get_task(task_id: str) -> Task:
+        return AsyncResult(task_id)

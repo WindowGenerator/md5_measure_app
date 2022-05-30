@@ -1,6 +1,5 @@
 import json
 
-from celery.result import AsyncResult
 from celery.states import READY_STATES, SUCCESS
 from fastapi import APIRouter, Depends, UploadFile, status
 from src.db.dependencies import get_files_hash_record_repository
@@ -17,7 +16,7 @@ router = APIRouter(prefix="/files")
     "/compute/hash", response_model=TaskPromise, status_code=status.HTTP_201_CREATED
 )
 async def compute_hash(
-    file: UploadFile,
+    upload_file: UploadFile,
     hash_type: str = "md5",
     celery_api: CeleryApi = Depends(get_celery_api),
     files_hash_record_repository: FilesHashRecordRepository = Depends(
@@ -29,7 +28,7 @@ async def compute_hash(
     # что бэк и воркеры могут быть не на одной физической машине, ну и файловую систему таким образом зафрижу
 
     # Также думал посылать сжатое содержимое файла, чтобы не так сильно сетевку насиловать при передачи через рэббит
-    content = await file.read()
+    content = await upload_file.read()
     task = celery_api.compute_hash_by_file(content.decode("utf-8"), hash_type)
 
     await files_hash_record_repository.create_hash_record(task.id, hash_type)
@@ -40,6 +39,7 @@ async def compute_hash(
 @router.get("/compute/hash", response_model=Task, status_code=status.HTTP_200_OK)
 async def get_computed_hash(
     task_id: str,
+    celery_api: CeleryApi = Depends(get_celery_api),
     files_hash_record_repository: FilesHashRecordRepository = Depends(
         get_files_hash_record_repository
     ),
@@ -49,7 +49,7 @@ async def get_computed_hash(
     if task_from_db.status in READY_STATES:
         return task_from_db
 
-    task_from_redis = AsyncResult(task_id)
+    task_from_redis = celery_api.get_task(task_id)
 
     if task_from_redis.state not in READY_STATES:
         return task_from_db
@@ -64,5 +64,5 @@ async def get_computed_hash(
         return await files_hash_record_repository.update_hash_record(
             task_id,
             status=task_from_redis.state,
-            result=json.dump(task_from_redis.result),
+            result=json.dumps(task_from_redis.result),
         )
