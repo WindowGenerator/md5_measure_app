@@ -2,14 +2,14 @@
 
 CMD := poetry run
 
-UNIT_TESTS := ./tests/unit
+TESTS := ./tests
 
 all: install-deps pre-commit test
 
 test: test-unit
 
 test-unit:
-	$(CMD) pytest -vv $(UNIT_TESTS)
+	$(CMD) pytest -vv $(TESTS)
 
 pre-commit:
 	$(CMD) pre-commit run --all-files
