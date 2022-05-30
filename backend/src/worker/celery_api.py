@@ -24,5 +24,5 @@ class CeleryApi:
             "compute_hash_by_file", kwargs={"file": file, "hash_type": hash_type}
         )
 
-    def get_task(task_id: str) -> Task:
+    def get_task(self, task_id: str) -> Task:
         return AsyncResult(task_id)

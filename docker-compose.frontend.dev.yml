@@ -12,3 +12,12 @@ services:
     volumes:
       - "./frontend/src:/opt/app/src"
       - "./frontend/public:/opt/app/public"
+    networks:
+      - frontend
+
+networks:
+  frontend:
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.29.0.0/16

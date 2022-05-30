@@ -1,7 +1,7 @@
 import logging
 
 from functools import lru_cache
-from typing import Any, Dict
+from typing import Any, Dict, List
 
 from pydantic import BaseSettings, Field
 
@@ -85,6 +85,7 @@ class CelerySettings(RedisSettings, RabbitMQSettings):
 
 class AppSettings(FastApiInitSettings, PostgresSettings, CelerySettings):
     api_prefix: str = "/api/v1"
+    allowed_hosts: List[str] = ["*"]
 
     logging_level: int = logging.INFO
 
